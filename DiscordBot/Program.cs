@@ -2,11 +2,11 @@
 using Discord.Addons.Hosting;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordBot.models.openai;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Net.Http;
 
 public class Program
 {
@@ -44,21 +44,27 @@ public class Program
 
                    config.Token = token;
                })
+               .ConfigureServices((context, services) =>
+               {
+                   //services.AddHttpClient("OpenAIClient", httpClient =>
+                   //{
+                   //    httpClient.BaseAddress = new Uri("https://api.tarkov.dev/graphql");
+                   //});
+                   services.AddHttpClient();
+
+                   services.AddSingleton(new OpenAI(new OpenAIIonfiguration
+                   {
+                       ApiKey = Environment.GetEnvironmentVariable("OpenAI_API_Key")
+                   })); ;
+                   //.AddHostedService<CommandHandler>();
+               })
                .UseCommandService((context, config) =>
                {
                    config.CaseSensitiveCommands = false;
                    config.LogLevel = LogSeverity.Debug;
                    config.DefaultRunMode = RunMode.Sync;
                })
-               .ConfigureServices((context, services) =>
-               {
-                   services.AddHttpClient("TarkovClient", httpClient =>
-                   {
-                       httpClient.BaseAddress = new Uri("https://api.tarkov.dev/graphql");
-                   });
-                   //.AddHostedService<CommandHandler>();
-               })
                .UseConsoleLifetime();
-              
+
     }
 }
