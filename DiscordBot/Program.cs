@@ -1,16 +1,23 @@
 ﻿using Discord;
 using Discord.Addons.Hosting;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
-using DiscordBot.models.openai;
+using DiscordBot.Models;
+using DiscordBot.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Headers;
+using RunMode = Discord.Commands.RunMode;
 
 public class Program
 {
-    static async Task Main()
+    static void Main(string[] args)
+        => RunAsync(args).GetAwaiter().GetResult();
+
+    static async Task RunAsync(string[] args)
     {
         var builder = new HostBuilder()
                .ConfigureAppConfiguration(x =>
@@ -46,17 +53,22 @@ public class Program
                })
                .ConfigureServices((context, services) =>
                {
-                   //services.AddHttpClient("OpenAIClient", httpClient =>
-                   //{
-                   //    httpClient.BaseAddress = new Uri("https://api.tarkov.dev/graphql");
-                   //});
-                   services.AddHttpClient();
-
-                   services.AddSingleton(new OpenAI(new OpenAIIonfiguration
+                   services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
+                   services.AddSingleton<CommandHandler>();
+                   services.AddHttpClient("OpenAI_API_Client", httpClient =>
                    {
-                       ApiKey = Environment.GetEnvironmentVariable("OpenAI_API_Key")
-                   })); ;
-                   //.AddHostedService<CommandHandler>();
+                       httpClient.BaseAddress = new Uri(context.Configuration.GetValue<string>("BaseURLs:OpenAI"));
+                       httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Environment.GetEnvironmentVariable("OpenAI_API_Key"));
+                       httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                       httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("lucasersson_discordbot");
+                   });
+                   services.AddTransient(sp =>
+                   {
+                       var factory = sp.GetService<IHttpClientFactory>();
+                       var httpClient = factory?.CreateClient("OpenAI_API_Client") ?? new HttpClient();
+
+                       return new OpenAI(httpClient);
+                   });
                })
                .UseCommandService((context, config) =>
                {
@@ -66,5 +78,13 @@ public class Program
                })
                .UseConsoleLifetime();
 
+        var host = builder.Build();
+        using (host)
+        {
+            var commandHandler = host.Services.GetRequiredService<CommandHandler>();
+            await commandHandler.InitializeAsync();
+
+            await host.RunAsync();
+        }
     }
 }

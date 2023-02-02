@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscordBot.models.openai
+namespace OpenAI_API
 {
-    public class OpenAIIonfiguration
+    public class OpenAIConfiguration
     {
-        public string? ApiKey { get; set; }
+        public string? ApiKey { get; private set; }
     }
 }
