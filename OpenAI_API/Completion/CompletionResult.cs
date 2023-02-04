@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscordBot.Models
+namespace OpenAI_API.Completion
 {
     public class CompletionResult
     {

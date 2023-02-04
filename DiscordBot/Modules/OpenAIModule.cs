@@ -2,12 +2,14 @@
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
-using DiscordBot.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenAI_API;
+using OpenAI_API.Completion;
+using DiscordBot.Models;
 
 namespace DiscordBot.Modules
 {
@@ -21,50 +23,37 @@ namespace DiscordBot.Modules
         }
 
         [SlashCommand("completion", "returns text completion from chat-gpt model")]
-        public async Task Complete() => await Context.Interaction.RespondWithModalAsync<CompletionModal>("prompt");
-        //{
-        //    _openAI.CompletionRequest = new CompletionRequest
-        //    {
-        //        Model = Model.DaVinci,
-        //        MaxTokens = 2048,
-        //        //Prompt = prompt
-        //    };
-
-        //    var result = await _openAI.GetCompletion();
-        //    var textContent = result.ToString();
-
-        //    var mb = new ModalBuilder
-        //    {
-        //        Title = "Completion",
-        //        Components = new ModalComponentBuilder
-        //        {
-
-        //        }
-        //    };
-
-        //    await ReplyAsync(textContent);
-        //}
+        public async Task Complete() => await Context.Interaction.RespondWithModalAsync<CompletionModal>("completion");
 
         [ModalInteraction("completion")]
         public async Task ModalResponse(CompletionModal modal)
         {
+            //await RespondAsync("Processing operation");
+            await DeferAsync();
 
             var parsedSuccess = int.TryParse(modal.MaxTokens, out var maxTokens);
             if(!parsedSuccess)
             {
-                await RespondAsync("Max tokens needs to a number.");
+                await FollowupAsync("Max tokens needs to a number.");
                 return;
+            }
+            else
+            {
+                if(maxTokens > 2048)
+                {
+                    await FollowupAsync("Max tokens can't be greater than 2048.");
+                }
             }
 
             if(string.IsNullOrWhiteSpace(modal.PromptModel))
             {
-                await RespondAsync("You need to specify a ai model.");
+                await FollowupAsync("You need to specify an ai model.");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(modal.Prompt))
             {
-                await RespondAsync("You need to write a prompt.");
+                await FollowupAsync("You need to write a prompt.");
                 return;
             }
 
@@ -75,10 +64,29 @@ namespace DiscordBot.Modules
                 MaxTokens = maxTokens,
             };
 
-            var result = await _openAI.GetCompletion();
+            //try
+            //{
+                var result = await _openAI.GetCompletion();
+            //}
+            //catch (Exception ex)
+            //{
+            //    await RespondAsync(ex.ToString());
+            //}
 
+            var embed = new EmbedBuilder
+            {
+                Author = new EmbedAuthorBuilder
+                {
+                    Name = Context.Interaction.User.Username,
+                    IconUrl = Context.Interaction.User.GetAvatarUrl() ?? Context.Interaction.User.GetDefaultAvatarUrl(),
+                },
+                Title = Format.Italics(modal.Prompt),
+                Description = result.ToString(),
+                Timestamp = DateTime.UtcNow,
+                Color = Color.Orange
+            }.Build();
 
-            await RespondAsync(result.ToString());
+            await FollowupAsync(embed: embed);
         }
     }
 }

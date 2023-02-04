@@ -1,10 +1,13 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using DiscordBot.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -29,7 +32,18 @@ namespace DiscordBot.Services
         private async Task RegisterInteractions()
         {
             var configuration = Services.GetRequiredService<IConfiguration>();
-            await Commands.RegisterCommandsToGuildAsync(ulong.Parse(configuration.GetValue<string>("Guilds:TestGuild")));
+
+            if(Debugger.IsAttached)
+            {
+                _ = configuration.GetSection("Guilds").GetChildren().Select(async x =>
+                {
+                    await Commands.RegisterCommandsToGuildAsync(ulong.Parse(x.Value));
+                });
+            }
+            else
+            {
+                await Commands.RegisterCommandsGloballyAsync();
+            }
         }
 
         private async Task HandleInteraction(SocketInteraction arg)

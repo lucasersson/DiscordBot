@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscordBot.Models
+namespace OpenAI_API.Image
 {
-    public class OpenAIConfiguration
+    public class ImageResult
     {
-        public string? ApiKey { get; set; }
     }
 }

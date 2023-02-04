@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenAI_API
+namespace OpenAI_API.Image
 {
-    public class OpenAIConfiguration
+    public class ImageRequest
     {
-        public string? ApiKey { get; set; }
     }
 }

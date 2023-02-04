@@ -1,21 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Newtonsoft.Json;
 using System.Text;
-using System.Threading.Tasks;
+using OpenAI_API.Completion;
+using OpenAI_API.Image;
 
 namespace OpenAI_API
 {
     public class OpenAI
     {
-        //private readonly string _baseUrl = "https://openai.com/api/";
-        private readonly OpenAIConfiguration _configuration;
+        private readonly HttpClient _httpClient;
 
-        public Completion Completion { get; set; }
+        public CompletionRequest? CompletionRequest { get; set; }
+        public ImageRequest? ImageRequest { get; set; }
 
-        public OpenAI(OpenAIConfiguration configuration)
+        public OpenAI(HttpClient httpClient)
         {
-            _configuration = configuration;
+            _httpClient = httpClient;
+        }
+
+        public async Task<CompletionResult> GetCompletion()
+        {
+            var json = JsonConvert.SerializeObject(CompletionRequest, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("completions", content);
+            response.EnsureSuccessStatusCode();
+
+            var stringifiedContent = await response.Content.ReadAsStringAsync();
+            var deserializedObject = JsonConvert.DeserializeObject<CompletionResult>(stringifiedContent);
+
+            return await Task.FromResult(deserializedObject);
+        }
+
+        public async Task<ImageResult> GetImage()
+        {
+            throw new NotImplementedException();
         }
     }
 }
