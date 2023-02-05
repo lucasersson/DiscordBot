@@ -32,13 +32,14 @@ namespace DiscordBot.Services
         private async Task RegisterInteractions()
         {
             var configuration = Services.GetRequiredService<IConfiguration>();
-
-            if(Debugger.IsAttached)
+            if (Debugger.IsAttached)
             {
-                _ = configuration.GetSection("Guilds").GetChildren().Select(async x =>
-                {
-                    await Commands.RegisterCommandsToGuildAsync(ulong.Parse(x.Value));
-                });
+                await Commands.RegisterCommandsToGuildAsync(ulong.Parse(configuration.GetValue<string>("Guilds:private")));
+                await Commands.RegisterCommandsToGuildAsync(ulong.Parse(configuration.GetValue<string>("Guilds:3/3")));
+                //_ = configuration.GetSection("Guilds").GetChildren().Select(async x =>
+                //{
+                //    await Commands.RegisterCommandsToGuildAsync(ulong.Parse(x.Value));
+                //});
             }
             else
             {

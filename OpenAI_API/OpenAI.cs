@@ -2,10 +2,11 @@
 using System.Text;
 using OpenAI_API.Completion;
 using OpenAI_API.Image;
+using OpenAI_API.Models;
 
 namespace OpenAI_API
 {
-    public class OpenAI
+    public class OpenAI : IOpenAI
     {
         private readonly HttpClient _httpClient;
 
@@ -15,6 +16,22 @@ namespace OpenAI_API
         public OpenAI(HttpClient httpClient)
         {
             _httpClient = httpClient;
+        }
+
+        public async Task<CompletionModels> GetCompletionModels()
+        {
+            var response = await _httpClient.GetAsync("models");
+            response.EnsureSuccessStatusCode();
+
+            var stringifiedContent = await response.Content.ReadAsStringAsync();
+            var deserializedObject = JsonConvert.DeserializeObject<CompletionModels>(stringifiedContent);
+
+            if (deserializedObject == null)
+            {
+                throw new Exception("Bad request.");
+            }
+
+            return await Task.FromResult(deserializedObject);
         }
 
         public async Task<CompletionResult> GetCompletion()
@@ -28,12 +45,31 @@ namespace OpenAI_API
             var stringifiedContent = await response.Content.ReadAsStringAsync();
             var deserializedObject = JsonConvert.DeserializeObject<CompletionResult>(stringifiedContent);
 
+            if(deserializedObject == null)
+            {
+                throw new Exception("Bad request.");
+            }
+
             return await Task.FromResult(deserializedObject);
         }
 
         public async Task<ImageResult> GetImage()
         {
-            throw new NotImplementedException();
+            var json = JsonConvert.SerializeObject(ImageRequest, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("images/generations", content);
+            response.EnsureSuccessStatusCode();
+
+            var stringifiedContent = await response.Content.ReadAsStringAsync();
+            var deserializedObject = JsonConvert.DeserializeObject<ImageResult>(stringifiedContent);
+
+            if (deserializedObject == null)
+            {
+                throw new Exception("Bad request.");
+            }
+
+            return await Task.FromResult(deserializedObject);
         }
     }
 }
