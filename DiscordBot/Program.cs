@@ -42,6 +42,7 @@ public class Program
                        LogLevel = LogSeverity.Debug,
                        AlwaysDownloadUsers = false,
                        MessageCacheSize = 200,
+                       UseInteractionSnowflakeDate = false,
                    };
 
                    var token = Environment.GetEnvironmentVariable("DiscordToken");
@@ -63,7 +64,7 @@ public class Program
                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("lucasersson_discordbot");
                    });
-                   services.AddTransient(sp =>
+                   services.AddSingleton(sp =>
                    {
                        var factory = sp.GetService<IHttpClientFactory>();
                        var httpClient = factory?.CreateClient("OpenAI_API_Client") ?? new HttpClient();

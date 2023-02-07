@@ -36,10 +36,6 @@ namespace DiscordBot.Services
             {
                 await Commands.RegisterCommandsToGuildAsync(ulong.Parse(configuration.GetValue<string>("Guilds:private")));
                 await Commands.RegisterCommandsToGuildAsync(ulong.Parse(configuration.GetValue<string>("Guilds:3/3")));
-                //_ = configuration.GetSection("Guilds").GetChildren().Select(async x =>
-                //{
-                //    await Commands.RegisterCommandsToGuildAsync(ulong.Parse(x.Value));
-                //});
             }
             else
             {

@@ -59,14 +59,29 @@ namespace OpenAI_API
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync("images/generations", content);
-            response.EnsureSuccessStatusCode();
+            if(!response.IsSuccessStatusCode)
+            {
+                switch(response.StatusCode)
+                {
+                    case System.Net.HttpStatusCode.OK:
+                        break;
+                    case System.Net.HttpStatusCode.Unauthorized:
+                        throw new Exception("Unauthorized, OpenAI api token most likely expired.");
+                    case System.Net.HttpStatusCode.BadRequest:
+                        throw new Exception("Bad request, prompt was most likely flagged for profanity.");
+                    case System.Net.HttpStatusCode.InternalServerError:
+                        throw new Exception("Server error, try again later.");
+                    default:
+                        throw new Exception("Unknown error occured.");
+                }
+            }
 
             var stringifiedContent = await response.Content.ReadAsStringAsync();
             var deserializedObject = JsonConvert.DeserializeObject<ImageResult>(stringifiedContent);
 
             if (deserializedObject == null)
             {
-                throw new Exception("Bad request.");
+                throw new Exception("Could not process image.");
             }
 
             return await Task.FromResult(deserializedObject);
