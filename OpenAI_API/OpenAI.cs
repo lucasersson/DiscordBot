@@ -68,7 +68,7 @@ namespace OpenAI_API
                     case System.Net.HttpStatusCode.Unauthorized:
                         throw new Exception("Unauthorized, OpenAI api token most likely expired.");
                     case System.Net.HttpStatusCode.BadRequest:
-                        throw new Exception("Bad request, prompt was most likely flagged for profanity.");
+                        throw new Exception("Bad request, prompt was most likely flagged for explicit content.");
                     case System.Net.HttpStatusCode.InternalServerError:
                         throw new Exception("Server error, try again later.");
                     default:

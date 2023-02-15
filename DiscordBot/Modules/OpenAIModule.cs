@@ -57,7 +57,7 @@ namespace DiscordBot.Modules
             }
         }
 
-        [SlashCommand("completion", "returns text completion from chat-gpt model")]
+        [SlashCommand("completion", "returns text completion from gpt-3 model")]
         public async Task Complete() => await Context.Interaction.RespondWithModalAsync<CompletionModal>("completion");
 
         [ModalInteraction("completion")]
@@ -161,7 +161,7 @@ namespace DiscordBot.Modules
                             Name = Context.Interaction.User.Username,
                             IconUrl = Context.Interaction.User.GetAvatarUrl() ?? Context.Interaction.User.GetDefaultAvatarUrl(),
                         },
-                        Title = Format.Italics(modal.ImagePrompt),
+                        Description = Format.Bold(Format.Italics(modal.ImagePrompt)),
                         ImageUrl = result.Images[0].Url,
                         Timestamp = DateTime.UtcNow,
                         Color = Color.Blue
